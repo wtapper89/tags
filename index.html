@@ -233,7 +233,7 @@
 
             <div class="input-group">
                 <label for="barcodeNumber">Barcode Number</label>
-                <input type="text" id="barcodeNumber" placeholder="Enter number">
+                <input type="text" id="barcodeNumber" placeholder="Enter number or text">
             </div>
 
             <div class="input-group" id="ticketGroup" style="display: none;">
@@ -322,7 +322,7 @@
             const barcodeContainer = document.getElementById('barcodeContainer');
             const barcodeCanvas = document.getElementById('barcodeCanvas');
             const barcodeText = document.getElementById('barcodeText');
-            if (barcodeNumber && /^\d+$/.test(barcodeNumber)) {
+            if (barcodeNumber && /^[a-zA-Z0-9]+$/.test(barcodeNumber)) {
                 barcodeContainer.style.display = 'block';
                 barcodeText.textContent = barcodeNumber;
                 JsBarcode(barcodeCanvas, barcodeNumber, {
