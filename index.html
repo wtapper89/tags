@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CCI Equipment Tag Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <style>
         @font-face {
             font-family: 'Gotham Bold';
@@ -93,23 +94,23 @@
 
         .tag-header {
             font-family: 'Gotham Bold', sans-serif;
-            font-size: 18pt;
+            font-size: 16pt;
             text-align: center;
-            margin-bottom: 2mm;
+            margin-bottom: 1mm;
             line-height: 1;
         }
 
         .tag-field {
             display: flex;
             align-items: center;
-            font-size: 10pt;
-            margin-bottom: 1mm;
-            height: 5mm;
+            font-size: 8pt;
+            margin-bottom: 0.5mm;
+            height: 4mm;
         }
 
         .tag-field span:first-child {
-            min-width: 25mm;
-            margin-right: 2mm;
+            min-width: 20mm;
+            margin-right: 1mm;
         }
 
         .underline {
@@ -119,23 +120,34 @@
         }
 
         .checkbox-group {
-            margin-top: 2mm;
+            margin-top: 1mm;
             display: grid;
-            gap: 1mm;
+            gap: 0.5mm;
         }
 
         .checkbox-item {
             display: flex;
             align-items: center;
-            font-size: 10pt;
+            font-size: 8pt;
         }
 
         .checkbox-box {
             display: inline-block;
-            width: 3mm;
-            height: 3mm;
+            width: 2.5mm;
+            height: 2.5mm;
             border: 1px solid #000;
-            margin-right: 2mm;
+            margin-right: 1mm;
+        }
+
+        .barcode-container {
+            margin: 1mm 0;
+            text-align: center;
+        }
+
+        .barcode-text {
+            font-size: 8pt;
+            text-align: center;
+            margin-top: 0.5mm;
         }
 
         @media print {
@@ -167,13 +179,8 @@
             }
 
             .tag-fields {
-                max-height: 50mm !important;
+                max-height: 48mm !important;
                 overflow: hidden !important;
-            }
-
-            @page {
-                size: 100mm 62mm landscape;
-                margin: 0;
             }
         }
     </style>
@@ -222,6 +229,11 @@
             <div class="input-group">
                 <label for="item">Item</label>
                 <input type="text" id="item" required>
+            </div>
+
+            <div class="input-group">
+                <label for="barcodeNumber">Barcode Number</label>
+                <input type="text" id="barcodeNumber" placeholder="Enter number">
             </div>
 
             <div class="input-group" id="ticketGroup" style="display: none;">
@@ -273,6 +285,10 @@
                 <span>Location:</span>
                 <span class="underline" id="tagLocation"></span>
             </div>
+            <div class="barcode-container" id="barcodeContainer" style="display: none;">
+                <canvas id="barcodeCanvas"></canvas>
+                <div class="barcode-text" id="barcodeText"></div>
+            </div>
             <div class="checkbox-group" id="tagCheckboxes"></div>
         </div>
     </div>
@@ -287,19 +303,38 @@
         function generateTag() {
             const fields = [
                 'heading', 'user', 'dept', 'cciTag',
-                'utkTag', 'date', 'item', 'ticket', 'location'
+                'utkTag', 'date', 'item', 'ticket', 'location', 'barcodeNumber'
             ];
 
             // Update main fields
             fields.forEach(field => {
                 const element = document.getElementById(field);
-                const value = element ? element.value : '';
+                const value = element ? element.value.trim() : '';
                 const target = document.getElementById(`tag${field.charAt(0).toUpperCase() + field.slice(1)}`);
-                if(target) {
+                if (target) {
                     target.textContent = value;
                     target.parentElement.style.display = value ? 'flex' : 'none';
                 }
             });
+
+            // Handle barcode
+            const barcodeNumber = document.getElementById('barcodeNumber').value.trim();
+            const barcodeContainer = document.getElementById('barcodeContainer');
+            const barcodeCanvas = document.getElementById('barcodeCanvas');
+            const barcodeText = document.getElementById('barcodeText');
+            if (barcodeNumber && /^\d+$/.test(barcodeNumber)) {
+                barcodeContainer.style.display = 'block';
+                barcodeText.textContent = barcodeNumber;
+                JsBarcode(barcodeCanvas, barcodeNumber, {
+                    format: 'CODE128',
+                    displayValue: false,
+                    width: 1.2,
+                    height: 15,
+                    margin: 1
+                });
+            } else {
+                barcodeContainer.style.display = 'none';
+            }
 
             // Update checkboxes based on heading
             const heading = document.getElementById('heading').value;
@@ -307,7 +342,7 @@
             checkboxes.innerHTML = '';
 
             let checkboxHTML = '';
-            switch(heading) {
+            switch (heading) {
                 case 'CCI Tech New Equipment':
                     checkboxHTML = `
                         <div class="checkbox-item">
@@ -318,7 +353,7 @@
                             <div class="checkbox-box"></div>
                             NetReg
                         </div>
-						<div class="checkbox-item">
+                        <div class="checkbox-item">
                             <div class="checkbox-box"></div>
                             In inTune
                         </div>
@@ -330,8 +365,8 @@
                             <div class="checkbox-box"></div>
                             Cleared in Cheqroom
                         </div>
-						<div class="checkbox-item">
-						<div class="checkbox-box"></div>
+                        <div class="checkbox-item">
+                            <div class="checkbox-box"></div>
                             Cleared in inTune
                         </div>
                     `;
@@ -342,7 +377,7 @@
                             <div class="checkbox-box"></div>
                             Surplus Request Submitted
                         </div>
-						<div class="checkbox-item">
+                        <div class="checkbox-item">
                             <div class="checkbox-box"></div>
                             Removed from inTune / Apple School Manager
                         </div>
