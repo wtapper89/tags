@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCI Equipment Tag Generator</title>
+    <style>
+        @font-face {
+            font-family: 'Gotham Bold';
+            src: url('fonts/Gotham-Bold.otf') format('opentype');
+        }
+        @font-face {
+            font-family: 'Gotham';
+            src: url('fonts/Gotham-Medium.otf') format('opentype');
+        }
+
+        body {
+            font-family: 'Gotham', sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            font-family: 'Gotham Bold', sans-serif;
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.875rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #64748b;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-family: 'Gotham', sans-serif;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-family: 'Gotham Bold', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .tag-preview {
+            display: none;
+            width: 100mm;
+            height: 62mm;
+            padding: 3mm;
+            background: white;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .tag-header {
+            font-family: 'Gotham Bold', sans-serif;
+            font-size: 18pt;
+            text-align: center;
+            margin-bottom: 2mm;
+            line-height: 1;
+        }
+
+        .tag-field {
+            display: flex;
+            align-items: center;
+            font-size: 10pt;
+            margin-bottom: 1mm;
+            height: 5mm;
+        }
+
+        .tag-field span:first-child {
+            min-width: 25mm;
+            margin-right: 2mm;
+        }
+
+        .underline {
+            border-bottom: 1px solid #000;
+            flex-grow: 1;
+            height: 1em;
+        }
+
+        .checkbox-group {
+            margin-top: 2mm;
+            display: grid;
+            gap: 1mm;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            font-size: 10pt;
+        }
+
+        .checkbox-box {
+            display: inline-block;
+            width: 3mm;
+            height: 3mm;
+            border: 1px solid #000;
+            margin-right: 2mm;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .tag-preview,
+            .tag-preview * {
+                visibility: visible;
+            }
+
+            .tag-preview {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                transform: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 3mm !important;
+                width: 100mm !important;
+                height: 62mm !important;
+                overflow: hidden !important;
+                page-break-before: avoid !important;
+                page-break-after: avoid !important;
+                page-break-inside: avoid !important;
+            }
+
+            .tag-fields {
+                max-height: 50mm !important;
+                overflow: hidden !important;
+            }
+
+            @page {
+                size: 100mm 62mm landscape;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-card">
+        <h1>Equipment Tag Generator</h1>
+        
+        <div class="grid">
+            <div class="input-group">
+                <label for="heading">Tag Type</label>
+                <select id="heading">
+                    <option value="CCI Tech New Equipment">New Equipment</option>
+                    <option value="CCI Tech Hold Equipment">Hold Equipment</option>
+                    <option value="CCI Tech Returned Equipment">Returned Equipment</option>
+                    <option value="CCI Tech Surplus Equipment">Surplus Equipment</option>
+                    <option value="CCI Tech Trouble Ticket">Trouble Ticket</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="user">User</label>
+                <input type="text" id="user" required>
+            </div>
+
+            <div class="input-group">
+                <label for="dept">Department</label>
+                <input type="text" id="dept" required>
+            </div>
+
+            <div class="input-group">
+                <label for="cciTag">CCI Tag</label>
+                <input type="text" id="cciTag" required>
+            </div>
+
+            <div class="input-group">
+                <label for="utkTag">UTK Tag</label>
+                <input type="text" id="utkTag">
+            </div>
+
+            <div class="input-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" required>
+            </div>
+
+            <div class="input-group">
+                <label for="item">Item</label>
+                <input type="text" id="item" required>
+            </div>
+
+            <div class="input-group" id="ticketGroup" style="display: none;">
+                <label for="ticket">Ticket #</label>
+                <input type="text" id="ticket">
+            </div>
+
+            <div class="input-group" id="locationGroup" style="display: none;">
+                <label for="location">Location</label>
+                <input type="text" id="location">
+            </div>
+        </div>
+
+        <button onclick="generateTag()">Generate & Print Tag</button>
+    </div>
+
+    <div class="tag-preview" id="tagContainer">
+        <div class="tag-header" id="tagHeading"></div>
+        <div class="tag-fields">
+            <div class="tag-field">
+                <span>User:</span>
+                <span class="underline" id="tagUser"></span>
+            </div>
+            <div class="tag-field">
+                <span>Dept:</span>
+                <span class="underline" id="tagDept"></span>
+            </div>
+            <div class="tag-field">
+                <span>CCI Tag:</span>
+                <span class="underline" id="tagCciTag"></span>
+            </div>
+            <div class="tag-field">
+                <span>UTK Tag:</span>
+                <span class="underline" id="tagUtkTag"></span>
+            </div>
+            <div class="tag-field">
+                <span>Date:</span>
+                <span class="underline" id="tagDate"></span>
+            </div>
+            <div class="tag-field">
+                <span>Item:</span>
+                <span class="underline" id="tagItem"></span>
+            </div>
+            <div class="tag-field" id="tagTicketField" style="display: none;">
+                <span>Ticket #:</span>
+                <span class="underline" id="tagTicket"></span>
+            </div>
+            <div class="tag-field" id="tagLocationField" style="display: none;">
+                <span>Location:</span>
+                <span class="underline" id="tagLocation"></span>
+            </div>
+            <div class="checkbox-group" id="tagCheckboxes"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('heading').addEventListener('change', function() {
+            const isTroubleTicket = this.value === 'CCI Tech Trouble Ticket';
+            document.getElementById('ticketGroup').style.display = isTroubleTicket ? 'block' : 'none';
+            document.getElementById('locationGroup').style.display = isTroubleTicket ? 'block' : 'none';
+        });
+
+        function generateTag() {
+            const fields = [
+                'heading', 'user', 'dept', 'cciTag',
+                'utkTag', 'date', 'item', 'ticket', 'location'
+            ];
+
+            // Update main fields
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                const value = element ? element.value : '';
+                const target = document.getElementById(`tag${field.charAt(0).toUpperCase() + field.slice(1)}`);
+                if(target) {
+                    target.textContent = value;
+                    target.parentElement.style.display = value ? 'flex' : 'none';
+                }
+            });
+
+            // Update checkboxes based on heading
+            const heading = document.getElementById('heading').value;
+            const checkboxes = document.getElementById('tagCheckboxes');
+            checkboxes.innerHTML = '';
+
+            let checkboxHTML = '';
+            switch(heading) {
+                case 'CCI Tech New Equipment':
+                    checkboxHTML = `
+                        <div class="checkbox-item">
+                            <div class="checkbox-box"></div>
+                            In Cheqroom
+                        </div>
+                        <div class="checkbox-item">
+                            <div class="checkbox-box"></div>
+                            NetReg
+                        </div>
+						<div class="checkbox-item">
+                            <div class="checkbox-box"></div>
+                            In inTune
+                        </div>
+                    `;
+                    break;
+                case 'CCI Tech Returned Equipment':
+                    checkboxHTML = `
+                        <div class="checkbox-item">
+                            <div class="checkbox-box"></div>
+                            Cleared in Cheqroom
+                        </div>
+						<div class="checkbox-item">
+						<div class="checkbox-box"></div>
+                            Cleared in inTune
+                        </div>
+                    `;
+                    break;
+                case 'CCI Tech Surplus Equipment':
+                    checkboxHTML = `
+                        <div class="checkbox-item">
+                            <div class="checkbox-box"></div>
+                            Surplus Request Submitted
+                        </div>
+						<div class="checkbox-item">
+                            <div class="checkbox-box"></div>
+                            Removed from inTune / Apple School Manager
+                        </div>
+                    `;
+                    break;
+            }
+            checkboxes.innerHTML = checkboxHTML;
+
+            // Update heading
+            document.getElementById('tagHeading').textContent = heading;
+
+            // Add print enforcement styles
+            const printStyles = document.createElement('style');
+            printStyles.textContent = `
+                @media print {
+                    body > *:not(.tag-preview) { display: none !important; }
+                    .tag-preview { 
+                        page-break-before: avoid !important;
+                        page-break-after: avoid !important;
+                        page-break-inside: avoid !important;
+                        height: 62mm !important;
+                        overflow: hidden !important;
+                    }
+                }
+            `;
+            document.head.appendChild(printStyles);
+
+            // Show tag preview and hide form
+            const tagContainer = document.getElementById('tagContainer');
+            tagContainer.style.display = 'block';
+            document.querySelector('.form-card').style.display = 'none';
+
+            // Print and clean up
+            setTimeout(() => {
+                window.print();
+                document.head.removeChild(printStyles);
+                tagContainer.style.display = 'none';
+                document.querySelector('.form-card').style.display = 'block';
+            }, 100);
+        }
+    </script>
+</body>
+</html>
